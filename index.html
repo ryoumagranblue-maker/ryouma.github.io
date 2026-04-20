@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLOWER & GARDEN | プレミアム・フラワーショップ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans JP', sans-serif; scroll-behavior: smooth; }
+        .font-serif { font-family: 'Noto Serif JP', serif; }
+        .fade-in { animation: fadeIn 0.6s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-[#fdfbf9] text-gray-800">
+
+    <header class="bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-stone-100">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-serif font-bold tracking-tighter cursor-pointer text-stone-700" onclick="navigateTo('home')">
+                FLOWER <span class="text-pink-400">&</span> GARDEN
+            </h1>
+            
+            <nav class="hidden md:flex space-x-8 text-[11px] tracking-[0.2em] font-bold uppercase text-stone-500">
+                <a href="javascript:void(0)" onclick="navigateTo('home')" class="hover:text-pink-400 transition">Home</a>
+                <a href="javascript:void(0)" onclick="navigateTo('shop')" class="hover:text-pink-400 transition">All Items</a>
+                <a href="javascript:void(0)" onclick="navigateTo('about')" class="hover:text-pink-400 transition">About</a>
+                <a href="javascript:void(0)" onclick="navigateTo('guide')" class="hover:text-pink-400 transition">Guide</a>
+            </nav>
+
+            <div class="flex items-center space-x-5">
+                <button onclick="toggleCart()" class="relative p-2 hover:bg-stone-50 rounded-full transition">
+                    <span class="text-xl">👜</span>
+                    <span id="cart-badge" class="absolute top-0 right-0 bg-pink-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full hidden">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div id="main-content"></div>
+
+    <div id="cart-sidebar" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="toggleCart()"></div>
+        <div class="absolute right-0 top-0 w-full max-w-md h-full bg-white shadow-2xl p-8 flex flex-col">
+            <div class="flex justify-between items-center mb-10">
+                <h2 class="text-2xl font-serif font-bold">Shopping Cart</h2>
+                <button onclick="toggleCart()" class="text-3xl font-light">&times;</button>
+            </div>
+            <div id="cart-list" class="flex-grow overflow-y-auto space-y-6"></div>
+            <div class="border-t border-stone-100 pt-8 mt-4">
+                <div class="flex justify-between text-lg font-bold mb-6">
+                    <span>合計金額（税込）</span>
+                    <span id="cart-total-price">¥0</span>
+                </div>
+                <button onclick="showCheckoutForm()" class="w-full bg-stone-800 text-white py-5 rounded-sm tracking-widest hover:bg-stone-700 transition uppercase text-xs font-bold">注文手続きへ進む</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="checkout-form-modal" class="fixed inset-0 z-[150] hidden items-center justify-center p-4 bg-stone-900/60 overflow-y-auto">
+        <div class="bg-white p-8 md:p-12 rounded-sm max-w-2xl w-full my-8">
+            <h2 class="text-2xl font-serif font-bold mb-8 text-center border-b pb-4">お届け先情報の入力</h2>
+            <form id="order-form" onsubmit="event.preventDefault(); completeOrder();" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-stone-500 mb-2 uppercase tracking-widest">お名前</label>
+                    <input type="text" required placeholder="山田 太郎" class="w-full border border-stone-200 p-3 outline-none focus:border-pink-300 transition">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-stone-500 mb-2 uppercase tracking-widest">メールアドレス</label>
+                    <input type="email" required placeholder="example@flower.com" class="w-full border border-stone-200 p-3 outline-none focus:border-pink-300 transition">
+                </div>
+                <div class="md:col-span-1">
+                    <label class="block text-xs font-bold text-stone-500 mb-2 uppercase tracking-widest">郵便番号</label>
+                    <input type="text" required placeholder="123-4567" class="w-full border border-stone-200 p-3 outline-none focus:border-pink-300 transition">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-stone-500 mb-2 uppercase tracking-widest">ご住所</label>
+                    <input type="text" required placeholder="東京都目黒区..." class="w-full border border-stone-200 p-3 outline-none focus:border-pink-300 transition">
+                </div>
+                <div class="md:col-span-2 mt-4 flex space-x-4">
+                    <button type="button" onclick="closeCheckoutForm()" class="flex-1 border border-stone-200 py-4 text-xs font-bold uppercase tracking-widest">戻る</button>
+                    <button type="submit" class="flex-1 bg-pink-500 text-white py-4 text-xs font-bold uppercase tracking-widest hover:bg-pink-600 transition">注文を確定する</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="success-modal" class="fixed inset-0 z-[200] hidden items-center justify-center p-4 bg-stone-900/50">
+        <div class="bg-white p-10 rounded-lg max-w-sm w-full text-center">
+            <div id="success-icon" class="text-5xl mb-4">🕊️</div>
+            <h3 id="success-title" class="text-xl font-bold mb-2">完了いたしました</h3>
+            <p id="success-message" class="text-sm text-gray-500 mb-6">内容を確認し、順次対応させていただきます。<br>（※これはデモ画面です）</p>
+            <button onclick="closeAllModals()" class="bg-pink-500 text-white px-8 py-2 rounded-full text-xs font-bold">閉じる</button>
+        </div>
+    </div>
+
+    <footer class="bg-stone-100 border-t border-stone-200 mt-20 py-16">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="font-serif text-xl mb-6 tracking-widest uppercase cursor-pointer" onclick="navigateTo('home')">Flower & Garden</h2>
+            <nav class="flex justify-center space-x-6 mb-8 text-[10px] tracking-widest font-bold text-stone-400 uppercase">
+                <a href="javascript:void(0)" onclick="navigateTo('privacy')" class="hover:text-stone-600">Privacy Policy</a>
+                <a href="javascript:void(0)" onclick="navigateTo('terms')" class="hover:text-stone-600">Terms of Service</a>
+                <a href="javascript:void(0)" onclick="navigateTo('contact')" class="hover:text-stone-600">Contact</a>
+            </nav>
+            <div class="mt-10 text-[10px] text-stone-300 italic">© 2026 Premium Flower Shop. Crafted for your beauty.</div>
+        </div>
+    </footer>
+
+    <script>
+        const products = [
+            { id: 1, name: "Sakura Pink Bouquet", price: 5500, category: "bouquet", img: "https://images.unsplash.com/photo-1526047932273-341f2a7631f9?q=80&w=800", desc: "春を彩る、柔らかなピンク色のブーケ。" },
+            { id: 2, name: "White Lily & Rose", price: 7800, category: "gift", img: "https://images.unsplash.com/photo-1453904300235-0f2f60b15b5d?q=80&w=800", desc: "気品溢れるユリとバラの特別なアレンジメント。" },
+            { id: 3, name: "Lavender Pot", price: 3200, category: "plant", img: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e835?q=80&w=800", desc: "香りの良いラベンダーの鉢植え。" },
+            { id: 4, name: "Mimosa Swaq", price: 4200, category: "dried", img: "https://images.unsplash.com/photo-1519304116743-758a6a6d9016?q=80&w=800", desc: "ミモザを贅沢に使ったドライフラワースワッグ。" },
+            { id: 5, name: "Organic Monstera", price: 6500, category: "plant", img: "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?q=80&w=800", desc: "インテリアに人気の観葉植物。" },
+            { id: 6, name: "Premium Red Rose", price: 12000, category: "gift", img: "https://images.unsplash.com/photo-1582794543139-8ac9cb0f7b11?q=80&w=800", desc: "想いを伝える最高級の赤バラボックス。" },
+            { id: 7, name: "Sunlight Sunflower", price: 3800, category: "bouquet", img: "https://images.unsplash.com/photo-1470509037663-253afd7f0f51?q=80&w=800", desc: "夏の日差しを浴びたような明るいひまわり。" },
+            { id: 8, name: "Eucalyptus Bundle", price: 2500, category: "dried", img: "https://images.unsplash.com/photo-1508784411316-02b8cd4d3a3a?q=80&w=800", desc: "癒やしの香りが広がるユーカリの束。" },
+            { id: 9, name: "Table Orchid", price: 9500, category: "plant", img: "https://images.unsplash.com/photo-1534885391148-9110fc98f33c?q=80&w=800", desc: "デスクに飾れる上品なミニ胡蝶蘭。" }
+        ];
+
+        let cart = [];
+
+        function navigateTo(page) {
+            const main = document.getElementById('main-content');
+            window.scrollTo(0, 0);
+
+            if (page === 'home') renderHome(main);
+            else if (page === 'shop') renderShop(main, 'all');
+            else if (page === 'about') renderAbout(main);
+            else if (page === 'guide') renderGuide(main);
+            else if (page === 'privacy') renderPrivacy(main);
+            else if (page === 'terms') renderTerms(main);
+            else if (page === 'contact') renderContact(main);
+        }
+
+        // --- 各画面の描画関数 ---
+        function renderHome(container) {
+            container.innerHTML = `
+                <section class="fade-in">
+                    <div class="relative h-[85vh] flex items-center justify-center bg-stone-200 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1490750967868-88aa4486c946?q=80&w=2000" class="absolute inset-0 w-full h-full object-cover opacity-80" alt="Hero">
+                        <div class="relative text-center text-white px-4">
+                            <h2 class="text-5xl md:text-8xl font-serif mb-8 leading-tight">花の力で、<br>心を彩る。</h2>
+                            <button onclick="navigateTo('shop')" class="bg-white text-stone-800 px-12 py-5 text-xs tracking-widest font-bold uppercase hover:bg-stone-800 hover:text-white transition">Explore Collection</button>
+                        </div>
+                    </div>
+                    <div class="py-24 bg-white">
+                        <div class="container mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-16 text-center">
+                            <div><span class="text-4xl block mb-6">🌿</span><h4 class="font-serif text-xl mb-4">Farm to Table</h4><p class="text-sm text-stone-400">市場を介さず産地から直送。鮮度が違います。</p></div>
+                            <div><span class="text-4xl block mb-6">🎨</span><h4 class="font-serif text-xl mb-4">Artisan Design</h4><p class="text-sm text-stone-400">熟練の職人が、一点一点想いを込めて制作。</p></div>
+                            <div><span class="text-4xl block mb-6">✉️</span><h4 class="font-serif text-xl mb-4">Gift Message</h4><p class="text-sm text-stone-400">大切な方への想いを綴るカードを無料でお付けします。</p></div>
+                        </div>
+                    </div>
+                    <div class="py-20 bg-stone-50">
+                        <div class="container mx-auto px-6 text-center">
+                            <h3 class="text-3xl font-serif mb-16 underline underline-offset-8 decoration-stone-200">New Arrivals</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                                ${products.slice(0, 3).map(p => `
+                                    <div class="group cursor-pointer text-left" onclick="renderDetail(${p.id})">
+                                        <div class="aspect-[3/4] overflow-hidden mb-6"><img src="${p.img}" class="w-full h-full object-cover group-hover:scale-110 transition duration-1000"></div>
+                                        <h4 class="font-bold text-sm mb-2">${p.name}</h4>
+                                        <p class="text-pink-500 font-medium">¥${p.price.toLocaleString()}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            `;
+        }
+
+        function renderShop(container, filter = 'all') {
+            const filteredProducts = filter === 'all' ? products : products.filter(p => p.category === filter);
+            container.innerHTML = `
+                <section class="container mx-auto px-6 py-16 fade-in">
+                    <header class="text-center mb-16">
+                        <h2 class="text-4xl font-serif mb-4">Collection</h2>
+                        <p class="text-stone-400 text-sm italic">Find your perfect blooms.</p>
+                    </header>
+                    <div class="flex flex-wrap justify-center gap-6 mb-16 text-[10px] tracking-widest font-bold uppercase">
+                        <button onclick="renderShop(document.getElementById('main-content'), 'all')" class="${filter === 'all' ? 'text-pink-500' : 'text-stone-400'} hover:text-pink-500">All Items</button>
+                        <button onclick="renderShop(document.getElementById('main-content'), 'bouquet')" class="${filter === 'bouquet' ? 'text-pink-500' : 'text-stone-400'} hover:text-pink-500">Bouquet</button>
+                        <button onclick="renderShop(document.getElementById('main-content'), 'plant')" class="${filter === 'plant' ? 'text-pink-500' : 'text-stone-400'} hover:text-pink-500">Plant</button>
+                        <button onclick="renderShop(document.getElementById('main-content'), 'gift')" class="${filter === 'gift' ? 'text-pink-500' : 'text-stone-400'} hover:text-pink-500">Gift Box</button>
+                        <button onclick="renderShop(document.getElementById('main-content'), 'dried')" class="${filter === 'dried' ? 'text-pink-500' : 'text-stone-400'} hover:text-pink-500">Dried Flower</button>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-8 gap-y-16">
+                        ${filteredProducts.map(p => `
+                            <div class="group cursor-pointer fade-in" onclick="renderDetail(${p.id})">
+                                <div class="aspect-[4/5] overflow-hidden bg-stone-100 mb-6"><img src="${p.img}" class="w-full h-full object-cover group-hover:opacity-80 transition duration-700"></div>
+                                <h4 class="text-sm font-bold mb-2 tracking-tight">${p.name}</h4>
+                                <p class="text-stone-400 text-[10px] uppercase tracking-widest mb-2">${p.category}</p>
+                                <p class="text-sm font-medium text-stone-900">¥${p.price.toLocaleString()}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </section>
+            `;
+        }
+
+        function renderAbout(container) {
+            container.innerHTML = `
+                <section class="container mx-auto px-6 py-24 fade-in max-w-4xl text-center">
+                    <h2 class="text-4xl font-serif mb-12">About Our Shop</h2>
+                    <img src="https://images.unsplash.com/photo-1526047932273-341f2a7631f9?q=80&w=1200" class="w-full h-96 object-cover mb-12 rounded-sm shadow-xl">
+                    <p class="text-stone-500 leading-loose mb-8 text-sm">私たちは、ただ花を売るのではなく、「花があることで生まれる心豊かな時間」を提案しています。</p>
+                    <p class="text-stone-500 leading-loose text-sm">2020年に小さなアトリエから始まった私たちのショップは、今では全国の農家さんと提携し、新鮮で最も美しい状態の花々をお届けしています。</p>
+                </section>
+            `;
+        }
+
+        function renderGuide(container) {
+            container.innerHTML = `
+                <section class="container mx-auto px-6 py-24 fade-in max-w-4xl">
+                    <h2 class="text-4xl font-serif mb-16 text-center">Shopping Guide</h2>
+                    <div class="space-y-12">
+                        <div class="border-b pb-8"><h3 class="font-bold mb-4 uppercase tracking-widest text-xs">配送について</h3><p class="text-xs text-stone-500 leading-relaxed">ヤマト運輸にてお届けします。ご注文から3営業日以内に発送いたします。送料は全国一律 ¥800（1万円以上のご購入で無料）です。</p></div>
+                        <div class="border-b pb-8"><h3 class="font-bold mb-4 uppercase tracking-widest text-xs">返品・交換について</h3><p class="text-xs text-stone-500 leading-relaxed">生花の特性上、お客様都合による返品は承っておりません。品質に問題があった場合は到着後24時間以内にご連絡ください。</p></div>
+                    </div>
+                </section>
+            `;
+        }
+
+        // --- 【追加】プライバシーポリシー ---
+        function renderPrivacy(container) {
+            container.innerHTML = `
+                <section class="container mx-auto px-6 py-24 fade-in max-w-3xl">
+                    <h2 class="text-3xl font-serif mb-12 text-center">Privacy Policy</h2>
+                    <div class="text-xs text-stone-500 leading-loose space-y-6">
+                        <p>FLOWER & GARDEN（以下「当店」）は、お客様の個人情報を適切に保護することを社会的責務と考え、以下の通りプライバシーポリシーを定めます。</p>
+                        <div>
+                            <h3 class="font-bold text-stone-800 mb-2">1. 個人情報の収集・利用</h3>
+                            <p>当店は、商品の配送、お問い合わせへの回答、新商品のご案内などの目的のために、お名前、ご住所、メールアドレス等の個人情報を収集いたします。収集した情報は目的外には利用いたしません。</p>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-stone-800 mb-2">2. 第三者への提供</h3>
+                            <p>当店は、法令に基づく場合を除き、お客様の同意を得ることなく個人情報を第三者に提供することはありません（配送業務を委託する運送会社を除く）。</p>
+                        </div>
+                        <p>本ポリシーの内容は、必要に応じて変更することがあります。最新の内容は本ページにてご確認ください。</p>
+                    </div>
+                </section>
+            `;
+        }
+
+        // --- 【追加】利用規約 ---
+        function renderTerms(container) {
+            container.innerHTML = `
+                <section class="container mx-auto px-6 py-24 fade-in max-w-3xl">
+                    <h2 class="text-3xl font-serif mb-12 text-center">Terms of Service</h2>
+                    <div class="text-xs text-stone-500 leading-loose space-y-6">
+                        <p>この利用規約は、お客様が当店を利用する際の条件を定めるものです。</p>
+                        <div>
+                            <h3 class="font-bold text-stone-800 mb-2">第1条（商品の購入）</h3>
+                            <p>お客様は、本サービスを利用して商品を購入することができます。注文は当店が承諾の通知を発信した時点で成立するものとします。</p>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-stone-800 mb-2">第2条（禁止事項）</h3>
+                            <p>虚偽の内容による注文、転売目的での購入、公序良俗に反する行為、その他当店が不適切と判断する行為を禁止いたします。</p>
+                        </div>
+                        <p>規約に定めのない事項については、日本の法令に従い誠実に協議解決するものとします。</p>
+                    </div>
+                </section>
+            `;
+        }
+
+        // --- 【追加】お問い合わせ ---
+        function renderContact(container) {
+            container.innerHTML = `
+                <section class="container mx-auto px-6 py-24 fade-in max-w-xl">
+                    <h2 class="text-3xl font-serif mb-4 text-center">Contact Us</h2>
+                    <p class="text-center text-stone-400 text-xs mb-12 uppercase tracking-widest">ご質問・ご相談はこちらから</p>
+                    <form onsubmit="event.preventDefault(); submitContact();" class="space-y-6">
+                        <div>
+                            <label class="block text-[10px] font-bold text-stone-500 mb-2 uppercase tracking-widest">お名前</label>
+                            <input type="text" required placeholder="Name" class="w-full border-b border-stone-200 py-3 bg-transparent outline-none focus:border-pink-300 transition">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-stone-500 mb-2 uppercase tracking-widest">メールアドレス</label>
+                            <input type="email" required placeholder="Email Address" class="w-full border-b border-stone-200 py-3 bg-transparent outline-none focus:border-pink-300 transition">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-stone-500 mb-2 uppercase tracking-widest">お問い合わせ内容</label>
+                            <textarea required rows="5" placeholder="Your Message" class="w-full border border-stone-200 p-4 bg-transparent outline-none focus:border-pink-300 transition mt-2"></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-stone-800 text-white py-5 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-stone-700 transition">Send Message</button>
+                    </form>
+                </section>
+            `;
+        }
+
+        function submitContact() {
+            // お問い合わせ送信デモ
+            document.getElementById('success-icon').innerText = "✉️";
+            document.getElementById('success-title').innerText = "メッセージを送信しました";
+            document.getElementById('success-message').innerHTML = "お問い合わせありがとうございます。<br>2〜3営業日以内に返信させていただきます。";
+            document.getElementById('success-modal').classList.remove('hidden');
+            document.getElementById('success-modal').classList.add('flex');
+        }
+
+        function renderDetail(productId) {
+            const p = products.find(item => item.id === productId);
+            const main = document.getElementById('main-content');
+            window.scrollTo(0, 0);
+            main.innerHTML = `
+                <section class="container mx-auto px-6 py-24 fade-in">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-16">
+                        <div class="aspect-square bg-stone-100"><img src="${p.img}" class="w-full h-full object-cover shadow-2xl"></div>
+                        <div class="py-8">
+                            <h2 class="text-4xl font-serif mb-6">${p.name}</h2>
+                            <p class="text-2xl text-pink-500 mb-8 font-light">¥${p.price.toLocaleString()}</p>
+                            <p class="text-stone-500 leading-loose mb-12 text-sm">${p.desc}</p>
+                            <button onclick="addToCart(${p.id})" class="w-full bg-stone-800 text-white py-6 text-xs font-bold uppercase tracking-widest hover:bg-stone-700 transition">Add to Cart</button>
+                        </div>
+                    </div>
+                </section>
+            `;
+        }
+
+        // カート系ロジック
+        function toggleCart() { document.getElementById('cart-sidebar').classList.toggle('hidden'); }
+        function addToCart(productId) {
+            const p = products.find(item => item.id === productId);
+            cart.push(p);
+            updateCartUI();
+            toggleCart();
+        }
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartUI();
+        }
+        function updateCartUI() {
+            const list = document.getElementById('cart-list');
+            const badge = document.getElementById('cart-badge');
+            const total = document.getElementById('cart-total-price');
+            if (cart.length > 0) {
+                badge.innerText = cart.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+            if (cart.length === 0) {
+                list.innerHTML = '<p class="text-stone-300 text-center mt-20 text-xs tracking-widest uppercase">Your cart is empty</p>';
+                total.innerText = "¥0";
+                return;
+            }
+            let sum = 0;
+            list.innerHTML = cart.map((item, index) => {
+                sum += item.price;
+                return `
+                    <div class="flex items-center space-x-4 border-b border-stone-50 pb-4">
+                        <img src="${item.img}" class="w-16 h-20 object-cover bg-stone-100">
+                        <div class="flex-grow">
+                            <h4 class="text-[11px] font-bold uppercase">${item.name}</h4>
+                            <p class="text-xs text-stone-400 mt-1">¥${item.price.toLocaleString()}</p>
+                            <button onclick="removeFromCart(${index})" class="text-[9px] text-red-300 uppercase mt-2 hover:text-red-500">Remove</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            total.innerText = `¥${sum.toLocaleString()}`;
+        }
+        function showCheckoutForm() {
+            if (cart.length === 0) return alert("カートが空です");
+            document.getElementById('checkout-form-modal').classList.remove('hidden');
+            document.getElementById('checkout-form-modal').classList.add('flex');
+        }
+        function closeCheckoutForm() {
+            document.getElementById('checkout-form-modal').classList.add('hidden');
+            document.getElementById('checkout-form-modal').classList.remove('flex');
+        }
+        function completeOrder() {
+            closeCheckoutForm();
+            document.getElementById('success-icon').innerText = "🕊️";
+            document.getElementById('success-title').innerText = "ご注文ありがとうございます";
+            document.getElementById('success-message').innerHTML = "確認メールを送信しました。<br>（※これはデモ画面です）";
+            document.getElementById('success-modal').classList.remove('hidden');
+            document.getElementById('success-modal').classList.add('flex');
+        }
+        function closeAllModals() {
+            document.getElementById('success-modal').classList.add('hidden');
+            document.getElementById('success-modal').classList.remove('flex');
+            cart = [];
+            updateCartUI();
+            if(!document.getElementById('cart-sidebar').classList.contains('hidden')) toggleCart();
+            navigateTo('home');
+        }
+
+        // 初期表示
+        navigateTo('home');
+    </script>
+</body>
+</html>
